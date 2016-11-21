@@ -1,0 +1,39 @@
+{
+  "name": "twirl",
+  "version": "0.1.0",
+  "description": "Move, rotate, and scale points in 2-D and 3-D",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha",
+    "lint": "jshint index.js && jshint test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinybike/twirl.git"
+  },
+  "keywords": [
+    "translation",
+    "rotation",
+    "rescaling"
+  ],
+  "author": "Jack Peterson <jack@tinybike.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tinybike/twirl/issues"
+  },
+  "homepage": "https://github.com/tinybike/twirl#readme",
+  "devDependencies": {
+    "browserify": "^13.1.1",
+    "chai": "^3.5.0",
+    "coveralls": "^2.11.15",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "istanbul": "^0.4.5",
+    "jshint": "^2.9.4",
+    "mocha": "^3.1.2",
+    "uglify-js": "^2.7.4"
+  }
+}
