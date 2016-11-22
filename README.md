@@ -5,7 +5,7 @@ Twirl
 [![Coverage Status](https://coveralls.io/repos/tinybike/twirl/badge.svg?branch=master&service=github)](https://coveralls.io/github/tinybike/twirl?branch=master)
 [![npm version](https://badge.fury.io/js/twirl.svg)](https://badge.fury.io/js/twirl)
 
-A few vanilla JS methods to move/rotate/scale points in 2-D and 3-D.
+Tools for zooming and rotating around arbitrary points in 2-D and 3-D.  Twirl uses Tait-Bryan angles (i.e., roll, pitch, and yaw) for 3-D rotations.
 
 Usage
 -----
@@ -21,17 +21,37 @@ A minified, browserified file `dist/twirl.min.js` is included for use in the bro
 <script src="dist/twirl.min.js" type="text/javascript"></script>
 ```
 
-To use `twirl.twirl`, specify the rotation angle, the rotation center (the point around which your points will be rotated; if `null` the rotation will be around the origin), scaling factor (amount to zoom in/out), and a list of points as an array-of-arrays:
+### 2-D Rotate/Zoom
+
+Twirl has a combined 2-D rotate/zoom method called `rotateZoom`.  To use this function, you will need to specify:
+    - the rotation angle (degrees counter-clockwise in a right-handed coordinate system)
+    - the rotation center (the point around which your points will be rotated; if `null` the rotation will be around the origin)
+    - zoom factor (amount to zoom in/out)
+    - list of coordinates you want to rotate/zoom (as an array-of-arrays)
 ```javascript
-var angle = 30; // 30 degree rotation (counter-clockwise in a right-handed coordinate system)
-var rotationCenter = [8, 10]; // rotate around the point (8, 10)
-var scalingFactor = 1.1; // zoom in 1.1x
-var coords = [[4, 2], [1, 2], [0, 0]]; // three (x, y) coordinate pairs
-var newCoords = twirl.twirl(angle, rotationCenter, scalingFactor, coords);
-// newCoords: [8.58948822334847, 0.17897644669693946],
-//            [5.731604390859821, -1.471023553303061],
-//            [5.878976446696939, -3.926279441628827]
+var angle = 90;      // 90 degree rotation
+var center = [1, 1]; // rotate around the point (1, 1)
+var zoom = 2;        // 2x zoom
+var coords = [[3, 1], [1, 1], [0, 2]]; // (x, y) coordinates
+twirl.rotateZoom(angle, center, zoom, coords);
+// output: [[1, 5], [1, 1], [-1, -1]]
 ```
+Twirl also has individual `rotate`, `zoom`, and `translate` methods.  Please refer to the unit tests for details/usage.
+
+### 3-D Rotate/Zoom
+
+Twirl's combined 3-D rotate/zoom method is called `rotateZoom3D`.  This function requires the same inputs as `rotateZoom`, except that it takes three input angles (roll, pitch, and yaw) instead of just one.  3-D rotations are defined by specifying their elemental rotations; `rotateZoom3D` follows the z-y'-x'' (yaw-pitch-roll) intrinsic rotation convention.
+```javascript
+var roll = 90;          // 90 degree rotation around the x-axis
+var pitch = 90;         // 90 degree rotation around the y-axis
+var yaw = 90;           // 90 degree rotation around the z-axis
+var center = [1, 1, 1]; // rotate around the point (1, 1, 1)
+var zoom = 2;           // 2x zoom
+var coords = [[1, 1, 1], [2, 3, 4]]; // (x, y, z) coordinates
+twirl.rotateZoom3D(roll, pitch, yaw, center, zoom, coords);
+// output: [[1, 1, 1], [7, -3, 3]]
+```
+Twirl has a `rotate3D` (3-D rotation around the origin) method, as well as elemental rotation methods (called `roll`, `pitch`, and `yaw`).  Please refer to unit tests for details/usage.
 
 Tests
 -----

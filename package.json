@@ -1,7 +1,7 @@
 {
   "name": "twirl",
-  "version": "0.1.0",
-  "description": "Move, rotate, and scale points in 2-D and 3-D",
+  "version": "0.2.0",
+  "description": "Zoom and rotate around arbitrary points in 2-D and 3-D",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -15,7 +15,6 @@
     "url": "git+https://github.com/tinybike/twirl.git"
   },
   "keywords": [
-    "translation",
     "rotation",
     "rescaling"
   ],

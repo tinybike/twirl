@@ -1,39 +1,57 @@
 /**
- * Twirl: move, rotate, and scale points in 2-D and 3-D.
+ * Twirl: zoom and rotate around arbitrary points in 2-D and 3-D.
+ * (Uses the z-y'-x'' intrinsic rotation convention for 3-D rotations.)
  * @author Jack Peterson (jack@tinybike.net)
  */
 
 "use strict";
 
+function degreesToRadians(degrees) {
+    return degrees * Math.PI / 180;
+}
+
 module.exports = {
 
-    degreesToRadians: function (degrees) {
-        return degrees * Math.PI / 180;
-    },
-
-    // Rotate and scale in 2-D
-    twirl: function (angle, rotationCenter, scalingFactor, coords) {
-        if (!coords || !coords[0] || !coords[0].length) {
+    /**
+     * 2-D rotate/zoom.
+     * @param {number} angle Rotation angle in degrees counter-clockwise.
+     * @param {array=} center Center of rotation as an array [x, y] (default: [0, 0]).
+     * @param {number=} scale Scaling (zoom) factor (default: 1).
+     * @param {array} coords Coordinates to rotate/zoom as an array-of-arrays.
+     * @return {array} Rotated/zoomed coordinates as an array-of-arrays.
+     */
+    rotateZoom: function (angle, center, scale, coords) {
+        if (!coords || !coords[0] || coords[0].length !== 2) {
             throw new Error("Expected nested array coords: [[1, 2], [3, 4], ...]");
         }
-        if (scalingFactor === null || scalingFactor === undefined) {
-            scalingFactor = 1;
+        if (scale === null || scale === undefined) {
+            scale = 1;
         }
-        if (!rotationCenter || !rotationCenter.length) {
-            rotationCenter = [0, 0];
+        if (!center || center.length !== 2) {
+            center = [0, 0];
         }
         if (!angle) {
-            return this.scale(scalingFactor, coords);
+            return this.zoom(scale, coords);
         }
-        var newCoords = this.translate([-rotationCenter[0], -rotationCenter[1]], coords);
-        var rotatedCoords = this.rotate(angle, newCoords);
-        var rescaledRotatedCoords = this.scale(scalingFactor, rotatedCoords);
-        return this.translate(rotationCenter, rescaledRotatedCoords);
+        return this.translate(
+            center,
+            this.zoom(
+                scale,
+                this.rotate(angle,
+                    this.translate([-center[0], -center[1]], coords)
+                )
+            )
+        );
     },
 
-    // 2-D rotation
+    /**
+     * 2-D rotation around the origin.
+     * @param {number} angle Rotation angle in degrees counter-clockwise.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rotated coordinates as an array-of-arrays.
+     */
     rotate: function (angle, coords) {
-        var radians = this.degreesToRadians(angle);
+        var radians = degreesToRadians(angle);
         var numCoords = coords.length;
         var newCoords = new Array(numCoords);
         var cos = Math.cos(radians);
@@ -47,35 +65,58 @@ module.exports = {
         return newCoords;
     },
 
-    // Rotate and scale in 3-D
-    twirl3d: function (angles, rotationCenter, scalingFactor, coords) {
-        if (!coords || !coords[0] || !coords[0].length) {
+    /**
+     * 3-D rotate/zoom: roll, pitch, and yaw are principal axis rotations
+     * (Tait-Bryan angles).
+     * @param {number} roll Roll angle in degrees counter-clockwise.
+     * @param {number} pitch Pitch angle in degrees counter-clockwise.
+     * @param {number} yaw Yaw angle in degrees counter-clockwise.
+     * @param {array=} center Center of rotation as an array [x, y, z] (default: [0, 0, 0]).
+     * @param {number=} scale Scaling (zoom) factor (default: 1).
+     * @param {array} coords Coordinates to rotate/zoom as an array-of-arrays.
+     * @return {array} Rotated/zoomed coordinates as an array-of-arrays.
+     */
+    rotateZoom3D: function (roll, pitch, yaw, center, scale, coords) {
+        if (!coords || !coords[0] || coords[0].length !== 3) {
             throw new Error("Expected nested array coords: [[1, 2, 3], [4, 5, 6], ...]");
         }
-        if (scalingFactor === null || scalingFactor === undefined) {
-            scalingFactor = 1;
+        if (scale === null || scale === undefined) {
+            scale = 1;
         }
-        if (!rotationCenter || !rotationCenter.length) {
-            rotationCenter = [0, 0, 0];
+        if (!center || center.length !== 3) {
+            center = [0, 0, 0];
         }
-        if (!angles) {
-            return this.scale(scalingFactor, coords);
+        if (!roll && !pitch && !yaw) {
+            return this.zoom(scale, coords);
         }
-        var newCoords = this.translate([-rotationCenter[0], -rotationCenter[1], -rotationCenter[2]], coords);
-        var rotatedCoords = this.rotate3d(angles[0], angles[1], angles[2], newCoords);
-        var rescaledRotatedCoords = this.scale(scalingFactor, rotatedCoords);
-        return this.translate(rotationCenter, rescaledRotatedCoords);
+        return this.translate(
+            center,
+            this.zoom(
+                scale,
+                this.rotate3D(
+                    roll,
+                    pitch,
+                    yaw,
+                    this.translate([-center[0], -center[1], -center[2]], coords)
+                )
+            )
+        );
     },
 
-    // x-axis rotation (3-D)
+    /**
+     * Rotation around the x-axis in 3-D.
+     * @param {number} angle Rotation angle in degrees counter-clockwise.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rotated coordinates as an array-of-arrays.
+     */
     roll: function (angle, coords) {
-        var radians = this.degreesToRadians(angle);
+        var radians = degreesToRadians(angle);
         var numCoords = coords.length;
         var newCoords = new Array(numCoords);
         var cos = Math.cos(radians);
         var sin = Math.sin(radians);
         for (var i = 0; i < numCoords; ++i) {
-            newCoords = [
+            newCoords[i] = [
                 coords[i][0],
                 cos*coords[i][1] - sin*coords[i][2],
                 sin*coords[i][1] + cos*coords[i][2]
@@ -84,15 +125,20 @@ module.exports = {
         return newCoords;
     },
 
-    // y-axis rotation (3-D)
+    /**
+     * Rotation around the y-axis in 3-D.
+     * @param {number} angle Rotation angle in degrees counter-clockwise.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rotated coordinates as an array-of-arrays.
+     */
     pitch: function (angle, coords) {
-        var radians = this.degreesToRadians(angle);
+        var radians = degreesToRadians(angle);
         var numCoords = coords.length;
         var newCoords = new Array(numCoords);
         var cos = Math.cos(radians);
         var sin = Math.sin(radians);
         for (var i = 0; i < numCoords; ++i) {
-            newCoords = [
+            newCoords[i] = [
                 cos*coords[i][0] + sin*coords[i][2],
                 coords[i][1],
                 -sin*coords[i][0] + cos*coords[i][2]
@@ -101,15 +147,20 @@ module.exports = {
         return newCoords;
     },
 
-    // z-axis rotation (3-D)
+    /**
+     * Rotation around the z-axis in 3-D.
+     * @param {number} angle Rotation angle in degrees counter-clockwise.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rotated coordinates as an array-of-arrays.
+     */
     yaw: function (angle, coords) {
-        var radians = this.degreesToRadians(angle);
+        var radians = degreesToRadians(angle);
         var numCoords = coords.length;
         var newCoords = new Array(numCoords);
         var cos = Math.cos(radians);
         var sin = Math.sin(radians);
         for (var i = 0; i < numCoords; ++i) {
-            newCoords = [
+            newCoords[i] = [
                 cos*coords[i][0] - sin*coords[i][1],
                 sin*coords[i][0] + cos*coords[i][1],
                 coords[i][2]
@@ -118,25 +169,38 @@ module.exports = {
         return newCoords;
     },
 
-    // 3-D rotation
-    rotate3d: function (x, y, z, coords) {
+    /**
+     * 3-D rotation around the origin.  Elemental rotations are applied in
+     * the following order: yaw, pitch, roll.
+     * @param {number} roll Roll angle in degrees counter-clockwise.
+     * @param {number} pitch Pitch angle in degrees counter-clockwise.
+     * @param {number} yaw Yaw angle in degrees counter-clockwise.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rotated coordinates as an array-of-arrays.
+     */
+    rotate3D: function (roll, pitch, yaw, coords) {
         var newCoords = coords;
         if (coords && coords.length) {
-            if (x) {
-                newCoords = this.roll(x, newCoords);
+            if (yaw) {
+                newCoords = this.yaw(yaw, newCoords);
             }
-            if (y) {
-                newCoords = this.pitch(y, newCoords);
+            if (pitch) {
+                newCoords = this.pitch(pitch, newCoords);
             }
-            if (z) {
-                newCoords = this.yaw(z, newCoords);
+            if (roll) {
+                newCoords = this.roll(roll, newCoords);
             }
         }
         return newCoords;
     },
 
-    // move: [x, y] or [x, y, z]
-    translate: function (move, coords) {
+    /**
+     * Move a point (vector) without rotating or rescaling it.
+     * @param {array} translation Amounts to move ([x, y] or [x, y, z]).
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Translated coordinates as an array-of-arrays.
+     */
+    translate: function (translation, coords) {
         var numCoords = coords.length;
         if (numCoords && coords && coords.length && coords[0] && coords[0].length) {
             var d = coords[0].length;
@@ -144,7 +208,7 @@ module.exports = {
             for (var i = 0; i < numCoords; ++i) {
                 newCoords[i] = new Array(d);
                 for (var j = 0; j < d; ++j) {
-                    newCoords[i][j] = coords[i][j] + move[j];
+                    newCoords[i][j] = coords[i][j] + translation[j];
                 }
             }
             return newCoords;
@@ -152,8 +216,13 @@ module.exports = {
         return coords;
     },
 
-    // rescale: multiply all coordinates by a scaling factor
-    scale: function (scalingFactor, coords) {
+    /**
+     * Zoom (rescale): multiply coordinates by a constant scaling factor.
+     * @param {number=} scale Scaling (zoom) factor.
+     * @param {array} coords Coordinates to rotate as an array-of-arrays.
+     * @return {array} Rescaled coordinates as an array-of-arrays.
+     */
+    zoom: function (scale, coords) {
         var numCoords = coords.length;
         if (numCoords && coords && coords.length && coords[0] && coords[0].length) {
             var d = coords[0].length;
@@ -161,7 +230,7 @@ module.exports = {
             for (var i = 0; i < numCoords; ++i) {
                 newCoords[i] = new Array(d);
                 for (var j = 0; j < d; ++j) {
-                    newCoords[i][j] = scalingFactor*coords[i][j];
+                    newCoords[i][j] = scale*coords[i][j];
                 }
             }
             return newCoords;
