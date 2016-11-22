@@ -1,6 +1,6 @@
 {
   "name": "twirl",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Zoom and rotate around arbitrary points in 2-D and 3-D",
   "main": "index.js",
   "directories": {

@@ -24,10 +24,10 @@ A minified, browserified file `dist/twirl.min.js` is included for use in the bro
 ### 2-D Rotate/Zoom
 
 Twirl has a combined 2-D rotate/zoom method called `rotateZoom`.  To use this function, you will need to specify:
-    - the rotation angle (degrees counter-clockwise in a right-handed coordinate system)
-    - the rotation center (the point around which your points will be rotated; if `null` the rotation will be around the origin)
-    - zoom factor (amount to zoom in/out)
-    - list of coordinates you want to rotate/zoom (as an array-of-arrays)
+- the rotation angle (degrees counter-clockwise in a right-handed coordinate system)
+- the rotation center (the point around which your points will be rotated; if `null` the rotation will be around the origin)
+- zoom factor (amount to zoom in/out)
+- list of coordinates you want to rotate/zoom (as an array-of-arrays)
 ```javascript
 var angle = 90;      // 90 degree rotation
 var center = [1, 1]; // rotate around the point (1, 1)
